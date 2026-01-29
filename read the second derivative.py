@@ -4,31 +4,50 @@ import matplotlib.pyplot as plt
 import random
 
 # إعدادات الصفحة
-st.set_page_config(layout="wide", page_title="Calculus Quiz")
+st.set_page_config(layout="wide", page_title="Calculus Graphical Quiz")
 
-# --- CSS مخصص للصناديق الملونة ---
+# --- CSS مخصص للتنسيق (RTL/LTR) ---
 st.markdown("""
 <style>
+    /* صندوق الشروط العربي */
     .rtl-box {
         direction: rtl;
         text-align: right;
-        font-family: 'Arial';
+        font-family: 'Arial', sans-serif;
         font-size: 18px;
         background-color: #f8f9fa;
-        padding: 10px;
+        padding: 15px;
         border-radius: 8px;
-        border-right: 5px solid #2980b9;
-        margin-bottom: 5px;
+        border-right: 6px solid #2980b9; /* شريط أزرق يمين */
+        margin-bottom: 10px;
     }
+    /* صندوق الشروط الإنجليزي */
     .ltr-box {
         direction: ltr;
         text-align: left;
-        font-family: 'Arial';
+        font-family: 'Arial', sans-serif;
         font-size: 18px;
         background-color: #f8f9fa;
-        padding: 10px;
+        padding: 15px;
         border-radius: 8px;
-        border-left: 5px solid #2980b9;
+        border-left: 6px solid #2980b9; /* شريط أزرق يسار */
+        margin-bottom: 10px;
+    }
+    /* تنسيق رأس السؤال */
+    .header-text-ar {
+        direction: rtl;
+        text-align: right;
+        font-weight: bold;
+        font-size: 20px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    .header-text-en {
+        direction: ltr;
+        text-align: left;
+        font-weight: bold;
+        font-size: 20px;
+        color: #333;
         margin-bottom: 5px;
     }
     .stButton button {
@@ -38,32 +57,41 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- دوال الرسم (نفس المنطق السابق) ---
+# --- دوال الرسم (نفس المنطق الدقيق السابق) ---
 def plot_textbook_graph(x, y):
     fig, ax = plt.subplots(figsize=(5, 4))
-    ax.plot(x, y, color='#007acc', linewidth=2.5)
+    # رسم المنحنى
+    ax.plot(x, y, color='#007acc', linewidth=3)
+    
+    # تنسيق المحاور في المنتصف
     ax.spines['left'].set_position('zero')
     ax.spines['bottom'].set_position('zero')
     ax.spines['right'].set_color('none')
     ax.spines['top'].set_color('none')
+    
+    # الأسهم
     ax.plot(1, 0, ">k", transform=ax.get_yaxis_transform(), clip_on=False)
     ax.plot(0, 1, "^k", transform=ax.get_xaxis_transform(), clip_on=False)
+    
+    # الشبكة
     ax.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.5)
+    
+    # الحدود والتدرج
     ax.set_xlim(-3.5, 3.5)
     ax.set_ylim(-3.5, 3.5)
     ax.set_xticks([-2, -1, 1, 2])
     ax.set_yticks([-2, -1, 1, 2])
+    
     plt.tight_layout()
     return fig
 
-# --- البيانات (باستخدام نصوص خام r-strings) ---
+# --- البيانات (نصوص Latex خام) ---
 def get_questions():
     questions = []
     
-    # Q37
+    # س 37
     questions.append({
         "id": 37,
-        # الإنجليزية
         "en_latex": r'''
         \begin{aligned}
         &f(0)=0 \\
@@ -73,7 +101,6 @@ def get_questions():
         &f''(x) < 0 \quad \text{for} \quad -1 < x < 0
         \end{aligned}
         ''',
-        # العربية (نستخدم نصوص عربية داخل text)
         "ar_latex": r'''
         \begin{aligned}
         &f(0)=0 \\
@@ -87,7 +114,7 @@ def get_questions():
         "distractors": [lambda v: v**3 - 3*v, lambda v: -(v**2) + 1, lambda v: np.sin(v)]
     })
 
-    # Q38
+    # س 38
     questions.append({
         "id": 38,
         "en_latex": r'''
@@ -112,7 +139,7 @@ def get_questions():
         "distractors": [lambda v: 2 + v**3, lambda v: 2 + v**2, lambda v: 2 - np.arctan(v)]
     })
 
-    # Q39
+    # س 39
     questions.append({
         "id": 39,
         "en_latex": r'''
@@ -135,7 +162,7 @@ def get_questions():
         "distractors": [lambda v: v**3, lambda v: v**2, lambda v: -(2*v**2 - v**4)]
     })
 
-    # Q40
+    # س 40
     questions.append({
         "id": 40,
         "en_latex": r'''
@@ -160,7 +187,7 @@ def get_questions():
     
     return questions
 
-# --- إدارة التطبيق ---
+# --- منطق التطبيق ---
 if 'q_idx' not in st.session_state:
     st.session_state['q_idx'] = 0
 if 'shuffled_opts' not in st.session_state:
@@ -180,7 +207,7 @@ if st.session_state['shuffled_opts'] is None:
 
 opts = st.session_state['shuffled_opts']
 
-# --- أزرار التنقل ---
+# --- الواجهة (التنقل) ---
 c1, c2, c3 = st.columns([1, 6, 1])
 with c1:
     if st.button("⬅ Previous"):
@@ -197,25 +224,31 @@ with c3:
 
 st.write("")
 
-# --- عرض الشروط (الحل السحري لظهور المعادلات) ---
+# --- رأس السؤال (جديد) ---
+h_en, h_ar = st.columns(2)
+with h_en:
+    st.markdown('<div class="header-text-en">Choose the graph that satisfies the following conditions:</div>', unsafe_allow_html=True)
+with h_ar:
+    st.markdown('<div class="header-text-ar">اختر التمثيل البياني الذي يحقق الشروط التالية:</div>', unsafe_allow_html=True)
+
+# --- عرض الشروط (بالطريقة المضمونة) ---
 col_en, col_ar = st.columns(2)
 
 with col_en:
-    # نفتح الصندوق بكود HTML
+    # فتح الصندوق الإنجليزي
     st.markdown('<div class="ltr-box">', unsafe_allow_html=True)
-    # نكتب المعادلة باستخدام st.latex لضمان التنسيق
     st.latex(curr_q['en_latex'])
-    # نغلق الصندوق
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_ar:
+    # فتح الصندوق العربي
     st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
     st.latex(curr_q['ar_latex'])
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.write("---")
 
-# --- عرض الرسومات ---
+# --- عرض الرسومات والاختيارات ---
 x_vals = np.linspace(-3.2, 3.2, 500)
 row1 = st.columns(2)
 row2 = st.columns(2)
@@ -225,9 +258,10 @@ for i, col in enumerate(row1 + row2):
         y_vals = opts[i]['func'](x_vals)
         fig = plot_textbook_graph(x_vals, y_vals)
         st.pyplot(fig, use_container_width=True)
-        if st.button(f"Choose Graph {i+1}", key=f"btn_{idx}_{i}"):
+        # زر الاختيار
+        if st.button(f"Graph {i+1}", key=f"btn_{idx}_{i}"):
             if opts[i]['is_correct']:
-                st.success("✅ Correct! إجابة صحيحة")
+                st.success("✅ Correct! إجابة ممتازة")
                 st.balloons()
             else:
-                st.error("❌ Incorrect Answer")
+                st.error("❌ Incorrect. حاول مرة أخرى")
